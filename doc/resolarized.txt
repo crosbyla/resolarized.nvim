@@ -1,0 +1,206 @@
+*resolarized.txt*	For Neovim version 0.5	Last change: 2021-07-26
+
+                                                            *resolarized.nvim*
+           ____           ____        _            _             _ ~
+          |  _ \ ___     / ___|  ___ | | __ _ _ __(_)_______  __| |~
+          | |_) / _ \____\___ \ / _ \| |/ _` | '__| |_  / _ \/ _` |~
+          |  _ <  __/_____|__) | (_) | | (_| | |  | |/ /  __/ (_| |~
+          |_| \_\___|    |____/ \___/|_|\__,_|_|  |_/___\___|\__,_|~
+
+
+
+Version: 0.0.0
+Author: Alejandro "HiPhish" Sanchez
+License: MIT License
+
+
+==============================================================================
+TABLE OF CONTENTS                                       *resolarized-contents*
+
+    1. Introduction .....................................|resolarized-intro|
+    2. Installation and setup ...........................|resolarized-setup|
+    3. Customisation ....................................|resolarized-custom|
+       3.1 Palette ......................................|resolarized-palette|
+       3.2 Scheme .......................................|resolarized-scheme|
+       3.3 Utility functions ............................|resolarized.util|
+
+==============================================================================
+INTRODUCTION                                               *resolarized-intro*
+
+Resolarized is an implementation of the Solarized colour scheme from Ethan
+Schoonover for Neovim. The goal is to have a comprehensive implementation that
+covers all the standard highlight groups plus groups from some of the more
+common community plugins. True colour and 16-colour terminals are supported.
+
+https://ethanschoonover.com/solarized/
+
+On top of that Resolarized is very customisable. You can change or extend the
+palette, change or extend the schemes, or even create your own variant based
+off the provided schemes. This is made possible thanks to Lua's flexible
+module system, declarative table syntax and metatables. Unlike other colour
+schemes there is no need for any `g:` variables to clutter up your global
+namespace, you can go straight to the source.
+
+
+==============================================================================
+INSTALLATION AND SETUP                                     *resolarized-setup*
+
+Install Resolarized like any other Neovim plugin. It provides three colour
+schemes: `solarized`, `solarized-dark` and `solarized-light`. The latter two
+are self-explanatory and are not affected by the 'background' setting. The
+first one will switch between light and dark depending on the 'background'
+setting.
+
+To customise Resolarized you have to alter its tables. Please refer to
+|resolarized-custom| for the tables and their specifications.
+
+
+==============================================================================
+CUSTOMISATION                                             *resolarized-custom*
+
+You can alter the default palette, which will affect all colour schemes, or
+you can alter an individual scheme. After making a change you have to reload
+the colour scheme again.
+
+>
+    -- Change an individual colour
+    require('resolarized.palette').red.hex = '#ff0000'
+    -- Change a highlight in the dark colour scheme
+    require('resolarized.scheme.dark').Comment.gui = nil
+
+    -- Reload scheme when done
+    vim.cmd 'highlight solarized-dark'
+<
+
+------------------------------------------------------------------------------
+                                                         *resolarized-palette*
+                                                         *resolarized.palette*
+
+The palette is a Lua table of colour-specification pairs. The colour key is an
+arbitrary name we want to use for a particular entry. We can then refer to the
+colour by its name instead of its value in the scheme. Example
+>
+    {
+        red   = {gui = '#dc322f', cterm = '1'},
+        green = {gui = '#859900', cterm = '2'},
+        blue  = {gui = '#268bd2', cterm = '4'},
+    }
+<
+Each colour specification has two keys: `'gui'` for a true colour code and
+`'cterm'` for the colour index in a 16-colour terminal.
+
+The table is the return value of the module `'resolarized.palette'`. You can
+modify it like you would modify any Lua table. Alter the existing
+specifications to affect all colour schemes, or add a new entry and modify a
+scheme to make use of the new colour. Example:
+>
+    palette = require 'resolarized.palette'
+
+    -- Darken the red colour slightly for all schemes
+    palette.red.gui = '#a22422'
+    -- Add a new colour
+    palette.black = {gui = '#000000', ['16'] = '0'}
+<
+
+------------------------------------------------------------------------------
+                                                          *resolarized-scheme*
+                                                     *resolarized.scheme.dark*
+                                                    *resolarized.scheme.light*
+
+A scheme is a Lua table which maps highlight groups to their corresponding
+definition. Example:
+>
+    local p = require 'resolarized.palette'
+    local dark = {
+          Comment =  {fg = p.base01, shape = 'italic'},
+          Constant =  {fg = p.cyan},
+          String = 'Constant',
+          SpellBad = {
+            guisp = p.violet, shape = 'undercurl',
+            children = {
+              SpellCap = {guisp = p.violet},
+            }
+          },
+    }
+<
+The keys are the names of the highlight groups we want to define. The values
+can be either a string or a table. The order of entries is irrelevant.
+
+If the value is a string, then the key group will be linked to the highlight
+group. In the above example that means `String = 'Constant'` is equivalent to
+the ex-command `:highlight link String Constant` (see |highlight-link|).
+
+If the value is a table its entries are key-value pairs of arguments to the
+|:highlight| ex-command. Here is a simple example:
+>
+    Comment = {guifg='#586e75', ctermfg='10', gui='italic', cterm='italic'}
+    local p = require 'resolarized.palette'
+    Normal  = {guifg=p.base0, ctermfg=p.base0, gui='italic', cterm='italic'}
+<
+The entries are the same as the key-value arguments which the highlight
+command takes (see |highlight-args|). Colour entries can also take a palette
+entry instead of a colour string. However, specifying colours like this is not
+very readable and there is too much boilerplate. Therefore there are a few
+convenience keys available:
+>
+    local p = require 'resolarized.palette'
+    Comment = {fg = p.base01, shape = 'italic'}
+<
+The standard keys take precedence over the extension keys. The extension keys
+are as follows:
+
+ ┌─────────┬──────────────────────────────────────────────────────┐
+ │ Key     │ Description                                          │
+ ├─────────┼──────────────────────────────────────────────────────┤
+ │ `fg`    │ Palette entry of foreground colours                  │
+ │ `bg`    │ Palette entry of foreground colours                  │
+ │ `shape` │ String which will be used for both `gui` and `cterm` │
+ └─────────┴──────────────────────────────────────────────────────┘
+
+
+------------------------------------------------------------------------------
+                                                            *resolarized.util*
+
+The utility module contains various helper functions which are handy when
+creating or modifying themes.
+
+traverse({scheme}, {on_visit})                     *resolarized.util.traverse*
+
+    Recursively traverse through a scheme and at every node apply `on_visit`
+    to the node. The order of traversal is undefined
+
+    Parameters:~
+        {scheme}    The scheme to traverse, see |resolarized.scheme|.
+        {on_visit}  A function of one argument, the return value is ignored.
+                    During traversal each node will be applied in turn to this
+                    function.
+
+    This function is handy if you wish to apply a side effect on the nodes,
+    such as changing colours. The current node is passed by reference to the
+    `on_visit` callback function.
+
+
+deep_copy({scheme})                               *resolarized.util.deep_copy*
+
+    Recursively copies the scheme. Only the nodes of the scheme are copied,
+    other values retain their reference.
+
+    Parameters:~
+        {scheme}  The scheme to copy, see |resolarized.scheme|.
+
+    Unlike a regular deep copy this will preserve references to non-node
+    entries. For example, you can copy a scheme and still compare its palette
+    entries by identity:
+>
+        local palette = require 'resolarized.palette'
+        local dark_scheme = require 'resolarized.scheme.dark'
+
+        local copy = deep_copy(scheme)
+        if copy.Normal.fg ~= palette.base0 then
+            print 'The foreground colour has been changed'
+        end
+<
+
+
+==============================================================================
+ vim:tw=78:ts=8:noet:ft=help:norl:
