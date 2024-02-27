@@ -73,7 +73,7 @@ return {
 	-- Maybe use a subdued background here?
 	LineNr       = {fg=p.base01, bg=p.base03},
 	CursorLineNr = {fg=p.base0,  bg=p.base02, shape='bold'},
-	MatchParen   = {fg=p.base03, bg=p.base01, shape='bold'},
+	MatchParen   = {fg=p.base0, bg=p.base03, shape='bold'},
 	ModeMsg      = {fg=p.blue               },
 	MsgArea      = 'Normal',
 	MsgSeparator = {fg=p.base01             },
